@@ -1,13 +1,6 @@
 class Sequence {
     lateinit var set: MutableList<Oligonucleotide>;
 
-    fun test(){
-        println(calcOffset("ATGA", "TGAD"))
-        println(calcOffset("ACTG", "TGAG"))
-        println(calcOffset("ATTA", "AATG"))
-        println(calcOffset("ATGA", "CGAT"))
-    }
-
     fun initSequence(fileName: String) {
         val dataReader = DataReader();
         dataReader.readInstance(fileName)
@@ -32,11 +25,38 @@ class Sequence {
                 set[i].setOffset(0)
             }
             else {
+                set[i].setOffset(0);
                 val offset = calcOffset(set[i-1].getValue(), set[i].getValue());
                 set[i-1].setOffset(set[i-1].getOffset() + offset);
                 set[i].setOffset(set[i].getOffset() + offset);
             }
         }
+    }
+
+    fun getSequence(): MutableList<Oligonucleotide> {
+        return this.set;
+    }
+
+    fun elementsNumber(): Int {
+        return set.size
+    }
+
+    fun getElement(index: Int): Oligonucleotide {
+        return set[index];
+    }
+
+    fun swap(index1: Int, index2: Int) {
+        val temp = set[index1];
+        set[index1] = set[index2];
+        set[index2] = temp;
+        calcALLOffset()
+    }
+
+    fun getOffsetSum(): Int {
+        var sum = 0;
+        for (i in set.indices)
+            sum += set[i].getOffset()
+        return sum;
     }
 
     override fun toString(): String {
