@@ -1,3 +1,6 @@
+# Custom DNA instances
+instances/
+
 .DS_Store
 .idea/shelf
 /confluence/target
