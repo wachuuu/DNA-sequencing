@@ -5,7 +5,7 @@ class Sequence {
         val dataReader = DataReader();
         dataReader.readInstance(fileName)
         this.set = dataReader.getSet()
-        calcALLOffset();
+        calcAllOffset();
     }
 
     private fun calcOffset(string1: String, string2: String): Int {
@@ -21,7 +21,7 @@ class Sequence {
         return offset;
     }
 
-    private fun calcALLOffset() {
+    private fun calcAllOffset() {
         for (i in set.indices) {
             if (i == 0) {
                 set[i].setOffset(0)
@@ -52,7 +52,7 @@ class Sequence {
         return this.set;
     }
 
-    fun elementsNumber(): Int {
+    fun getSize(): Int {
         return set.size
     }
 
@@ -64,7 +64,7 @@ class Sequence {
         val temp = set[index1];
         set[index1] = set[index2];
         set[index2] = temp;
-        calcALLOffset()
+        calcAllOffset()
     }
 
     fun getOffsetSum(): Int {
