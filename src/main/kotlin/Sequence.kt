@@ -43,6 +43,7 @@ class Sequence {
         return sequence;
     }
 
+//  TODO: consider calculating length based on offsets, not on sequence string
     fun getStringLength(): Int {
         val string = getString()
         return string.length
