@@ -1,24 +1,19 @@
-class Oligonucleotide {
-    private val value: String;
-    private var offset = 0;
-
-    constructor(value: String) {
-        this.value = value
-    }
+class Oligonucleotide(private val value: String) {
+    private var offset = 0
 
     fun getValue(): String {
-        return this.value;
+        return this.value
     }
+
     fun getOffset(): Int {
-        return this.offset;
+        return this.offset
     }
+
     fun setOffset(offset: Int) {
-        this.offset = offset;
+        this.offset = offset
     }
 
     override fun toString(): String {
-        return "Oligonucleotide(value='$value', offset=$offset)"
+        return "Oligonucleotide($value', $offset)"
     }
-
-
 }

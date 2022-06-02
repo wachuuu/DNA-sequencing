@@ -1,10 +1,10 @@
-fun main(args: Array<String>) {
-    val sequence = Sequence("pos_random_209+80-2.txt");
-    println(sequence.getStringLength());
-    val sequence2 = sequence.initSequence(209);
-    println(sequence2.getStringLength());
-    println(sequence2.toString())
-    println(sequence2.getSize());
-    println("length = ${sequence2.getStringLength()}")
-    println("quality = ${sequence2.getSize().toFloat()/(sequence.getSize().toFloat()-80)}")
+fun calcQualityNegatives(instance: MutableList<Oligonucleotide>, sequence: Sequence): Float {
+    return (sequence.getSize().toFloat() / (instance.size.toFloat()))
+}
+fun calcQualityPositives(errors: Int, instance: MutableList<Oligonucleotide>, sequence: Sequence): Float {
+    return (sequence.getSize().toFloat() / (instance.size.toFloat() - errors))
+}
+
+fun main() {
+    TabuSearch("53.500+50.txt", 509)
 }
