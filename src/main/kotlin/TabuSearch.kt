@@ -2,15 +2,17 @@ import kotlin.math.max
 
 class TabuSearch(filename: String, maxLength: Int) {
     private var maxLength = 0
-    private val debug = true
-    private val maxIterations = 50
+    private val debug = false
+    private val maxIterations = 100
     private var iterations = 0
     private var tabuList = mutableListOf<String>()
-    private var tabuLength = 5
+    private var tabuLength = 3
+    private val time = 30
 
     private lateinit var instance: MutableList<Oligonucleotide>
 
     private lateinit var bestSolution: Sequence
+    private lateinit var bestOfAllSolution: Sequence
     private var bestObjectFunction = 99999.0
 
     init {
@@ -20,12 +22,15 @@ class TabuSearch(filename: String, maxLength: Int) {
 
     fun search():Sequence {
         this.bestSolution = getInitSolution()
+        this.bestOfAllSolution = copy(this.bestSolution)
         this.bestObjectFunction = getObjectFunction(this.bestSolution)
 
+        val start = System.currentTimeMillis()
         while (iterations < maxIterations) {
+
+            if (debug) println("---------------- ITERATION ${iterations + 1} -----------------")
             val neighbourSolutions = getNeighbourSolutions(this.bestSolution)
             if (neighbourSolutions.size == 0) break
-            if (debug) println("---------------- ITERATION ${iterations + 1} -----------------")
 
             var bestCandidate = neighbourSolutions.last()
             var bestCandidateObjFunction = getObjectFunction(bestCandidate)
@@ -43,11 +48,16 @@ class TabuSearch(filename: String, maxLength: Int) {
             }
             this.bestSolution = bestCandidate
             this.bestObjectFunction = bestCandidateObjFunction
+            if (this.bestObjectFunction < getObjectFunction(this.bestOfAllSolution)) {
+                this.bestOfAllSolution = copy(this.bestSolution)
+            }
             printSequence(this.bestSolution, "New best solution")
             addToTabu(bestCandidate)
             iterations++
+            if ((System.currentTimeMillis() - start) > time*1000) break
         }
-        return this.bestSolution
+        printSequence(this.bestSolution, "Output")
+        return this.bestOfAllSolution
     }
 
     private fun addToTabu(sequence: Sequence) {
@@ -105,6 +115,7 @@ class TabuSearch(filename: String, maxLength: Int) {
         }
         val topOffsets = sumOffsets.sortedWith(compareByDescending { it.getOffset() }).toMutableList()
         topOffsets.removeAll { it.getOffset() == 2 }
+        if (debug) println("Found ${topOffsets.size} candidates")
         return topOffsets
     }
 
@@ -172,12 +183,12 @@ class TabuSearch(filename: String, maxLength: Int) {
 
     private fun getRemoveMoves(_candidates: MutableList<Oligonucleotide>, _sequence: Sequence): MutableList<Sequence> {
         val sequence = copy(_sequence)
-        val candidates = _candidates.map { deepCopy(it) }.toMutableList().take(minOf((_candidates.size.toDouble() / 5.0).toInt(), 8))
+        val candidates = _candidates.map { deepCopy(it) }.toMutableList().take((0..5).random())
         val possibleMoves = mutableListOf<Sequence>()
 
         val newSolution = copy(sequence)
         for (i in candidates.indices) {
-            val elemIndex = sequence.getSequence().indexOfFirst { it.getValue() == candidates[i].getValue() }
+            val elemIndex = newSolution.getSequence().indexOfFirst { it.getValue() == candidates[i].getValue() }
             newSolution.removeElementAt(elemIndex)
         }
         newSolution.refreshPositions()
@@ -191,6 +202,10 @@ class TabuSearch(filename: String, maxLength: Int) {
         val dataReader = DataReader()
         dataReader.readInstance(filename)
         this.instance = dataReader.getSet()
+    }
+
+    fun getInstance(): MutableList<Oligonucleotide> {
+        return this.instance.map { deepCopy(it) }.toMutableList()
     }
 
     private fun setMaxLength(value: Int) {
