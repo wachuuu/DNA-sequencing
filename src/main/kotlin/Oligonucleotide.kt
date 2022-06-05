@@ -1,5 +1,6 @@
-class Oligonucleotide(private val value: String) {
+data class Oligonucleotide(private val value: String) {
     private var offset = 0
+    private var position = -1
 
     fun getValue(): String {
         return this.value
@@ -13,7 +14,15 @@ class Oligonucleotide(private val value: String) {
         this.offset = offset
     }
 
+    fun getPosition(): Int {
+        return this.position
+    }
+
+    fun setPosition(value: Int) {
+        this.position = value
+    }
+
     override fun toString(): String {
-        return "Oligonucleotide($value', $offset)"
+        return "Oligonucleotide($value, $offset, $position)"
     }
 }

@@ -1,11 +1,11 @@
 import java.util.*
 
 class Sequence {
-    private var data: MutableList<Oligonucleotide>
+    var data: MutableList<Oligonucleotide>
 
-    constructor(list: MutableList<Oligonucleotide>) {
-        this.data = list
-        calcAllOffsets()
+    constructor(list: MutableList<Oligonucleotide>, calcOffsets: Boolean =false) {
+        this.data = list.map{ deepCopy(it) }.toMutableList()
+        if (calcOffsets) calcAllOffsets()
     }
 
     constructor() {
@@ -13,15 +13,16 @@ class Sequence {
     }
 
     fun getSequence(): MutableList<Oligonucleotide> {
-        return this.data
+        return this.data.map { deepCopy(it) }.toMutableList()
     }
 
     fun addElement(element: Oligonucleotide) {
-        this.data += element
+        this.data.add(deepCopy(element))
+        calcOffsetAt(this.data.size - 1)
     }
 
     fun insertElement(index: Int, element: Oligonucleotide) {
-        this.data.add(index, element)
+        this.data.add(index, deepCopy(element))
     }
 
     fun swapElements(index1: Int, index2: Int) {
@@ -33,7 +34,7 @@ class Sequence {
     }
 
     fun replaceElement(index: Int, element: Oligonucleotide) {
-        this.data[index] = element
+        this.data[index] = deepCopy(element)
         calcOffsetAt(index)
         calcOffsetAt(index + 1)
     }
@@ -74,7 +75,7 @@ class Sequence {
         return offset
     }
 
-    fun calcOffsetAt(index: Int) {
+    private fun calcOffsetAt(index: Int) {
         if (index > this.data.size - 1) return
         if (index == 0) {
             data[index].setOffset(0)
@@ -90,5 +91,27 @@ class Sequence {
                 data[i].setOffset(calcOffsetBetween(data[i-1], data[i]))
             }
         }
+    }
+
+    fun refreshPositions() {
+        for (i in this.data.indices) {
+            this.data[i].setPosition(i)
+        }
+    }
+
+    fun getAverageOffset(): Double {
+        calcAllOffsets()
+        var offsetSum = 0
+        for (i in data.indices) {
+            offsetSum += data[i].getOffset()
+        }
+        return offsetSum.toDouble() / data.size.toDouble()
+    }
+
+    private fun deepCopy(oligonucleotide: Oligonucleotide): Oligonucleotide {
+        val new = Oligonucleotide(oligonucleotide.getValue())
+        new.setPosition(oligonucleotide.getPosition())
+        new.setOffset(oligonucleotide.getOffset())
+        return new
     }
 }

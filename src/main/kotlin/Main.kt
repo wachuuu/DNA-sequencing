@@ -6,5 +6,6 @@ fun calcQualityPositives(errors: Int, instance: MutableList<Oligonucleotide>, se
 }
 
 fun main() {
-    TabuSearch("53.500+50.txt", 509)
+    val ts = TabuSearch("53.500+50.txt", 509)
+    ts.search()
 }

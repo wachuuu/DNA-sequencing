@@ -1,4 +1,6 @@
-class GreedyAlgorithm(var instance: MutableList<Oligonucleotide>) {
+class GreedyAlgorithm(_instance: MutableList<Oligonucleotide>) {
+    private var instance: MutableList<Oligonucleotide> = _instance.map{ deepCopy(it) }.toMutableList()
+
     fun getBestSequence(length: Int): Sequence {
         var bestSeqSize = 0
         var best = Sequence()
@@ -7,6 +9,7 @@ class GreedyAlgorithm(var instance: MutableList<Oligonucleotide>) {
             if (bestSeqSize < currentSeq.getSize()) {
                 best = currentSeq
                 bestSeqSize = best.getSize()
+                println("New solution, size: $bestSeqSize, avgOffset: ${best.getAverageOffset()}")
             }
         }
         return best
@@ -37,7 +40,15 @@ class GreedyAlgorithm(var instance: MutableList<Oligonucleotide>) {
                 toProcess.remove(toProcess[minIndex])
             }
         }
+        seq.refreshPositions()
         seq.calcAllOffsets()
         return seq
+    }
+
+    private fun deepCopy(oligonucleotide: Oligonucleotide): Oligonucleotide {
+        val new = Oligonucleotide(oligonucleotide.getValue())
+        new.setPosition(oligonucleotide.getPosition())
+        new.setOffset(oligonucleotide.getOffset())
+        return new
     }
 }
