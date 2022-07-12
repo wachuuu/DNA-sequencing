@@ -1,147 +1,117 @@
+import java.util.*
+
 class Sequence {
-    var set: MutableList<Oligonucleotide>;
+    var data: MutableList<Oligonucleotide>
 
-    constructor(list: MutableList<Oligonucleotide>) {
-        this.set = list;
+    constructor(list: MutableList<Oligonucleotide>, calcOffsets: Boolean =false) {
+        this.data = list.map{ deepCopy(it) }.toMutableList()
+        if (calcOffsets) calcAllOffsets()
     }
 
-    constructor(fileName: String) {
-        val dataReader = DataReader();
-        dataReader.readInstance(fileName)
-        var instance = dataReader.getSet();
-        this.set = instance;
-        calcAllOffset();
-    }
-
-    fun addElement(element: Oligonucleotide) {
-        this.set += element;
-    }
-
-    fun isNotEmpty(): Boolean {
-        return this.set.isNotEmpty();
-    }
-
-    fun removeElementAt(index: Int) {
-        this.set.removeAt(index);
-    }
-
-    fun initSequence(wantedLength: Int): Sequence {
-        var elemCount = 0;
-        var bestSeq = this;
-        for (i in this.set.indices) {
-            var currentSeq = greedyAlghoritm(this.set, i, wantedLength);
-            if(elemCount < currentSeq.getSize()) {
-                bestSeq = currentSeq;
-            }
-            println(currentSeq.getSize())
-        }
-        return bestSeq;
-    }
-
-    private fun greedyAlghoritm(nucleotidesSet: MutableList<Oligonucleotide>, startIndex: Int, wantedLength: Int): Sequence {
-        var seq = Sequence(mutableListOf<Oligonucleotide>());
-        val instance = nucleotidesSet.toMutableList()
-        var current = instance[startIndex];
-        seq.addElement(current);
-        instance.removeAt(startIndex);
-        while (instance.isNotEmpty()) {
-            var min = 1000; // we won't handle oligonucleotides as long as 1000 char
-            var minIndex = -1;
-            for (i in instance.indices) {
-                if(calcOffset(current.getValue(), instance[i].getValue()) < min) {
-                    min = calcOffset(current.getValue(), instance[i].getValue());
-                    minIndex = i;
-                }
-            }
-            if(seq.getStringLength() + calcOffset(current.getValue(), instance[minIndex].getValue()) > wantedLength) {
-                break;
-            }
-            else
-            {
-                seq.addElement(instance[minIndex]);
-                current = instance[minIndex];
-                instance.remove(instance[minIndex]);
-            }
-        }
-        seq.calcAllOffset();
-        return seq;
-    }
-
-    private fun calcOffset(string1: String, string2: String): Int {
-        var offset = string1.length;
-        for (i in 0..string2.length - 2) {
-            var substr1 = string2.subSequence(0, string2.length - i - 1)
-            var substr2 = string1.subSequence(i + 1, string1.length)
-            if (substr1 == substr2) {
-                offset = string1.length - substr1.length;
-                break;
-            }
-        }
-        return offset;
-    }
-
-    private fun calcAllOffset() {
-        for (i in set.indices) {
-            if (i == 0) {
-                set[i].setOffset(0)
-            } else {
-                set[i].setOffset(0);
-                val offset = calcOffset(set[i - 1].getValue(), set[i].getValue());
-                //set[i - 1].setOffset(set[i - 1].getOffset() + offset);
-                set[i].setOffset(set[i].getOffset() + offset);
-            }
-        }
-    }
-
-    fun getString(): String {
-        var sequence = set[0].getValue()
-        for (i in 1 until set.size) {
-            var offset = calcOffset(set[i-1].getValue(), set[i].getValue())
-            sequence += set[i].getValue().subSequence(set[i].getValue().length - offset, set[i].getValue().length)
-        }
-        return sequence;
-    }
-
-//  TODO: consider calculating length based on offsets, not on sequence string
-
-//    fun getSequenceLength(): Int {
-//
-//    }
-    fun getStringLength(): Int {
-        val string = getString()
-        return string.length
+    constructor() {
+        this.data = mutableListOf()
     }
 
     fun getSequence(): MutableList<Oligonucleotide> {
-        return this.set;
+        return this.data.map { deepCopy(it) }.toMutableList()
     }
 
-    fun getSize(): Int {
-        return set.size
+    fun addElement(element: Oligonucleotide) {
+        this.data.add(deepCopy(element))
+        calcOffsetAt(this.data.size - 1)
     }
 
-    fun getElement(index: Int): Oligonucleotide {
-        return set[index];
+    fun insertElement(index: Int, element: Oligonucleotide) {
+        this.data.add(index, deepCopy(element))
     }
 
-    fun swap(index1: Int, index2: Int) {
-        val temp = set[index1];
-        set[index1] = set[index2];
-        set[index2] = temp;
-        calcAllOffset();
-
+    fun swapElements(index1: Int, index2: Int) {
+        Collections.swap(this.data, index1, index2)
+        calcOffsetAt(index1)
+        calcOffsetAt(index1 + 1)
+        calcOffsetAt(index2)
+        calcOffsetAt(index2 + 1)
     }
 
-    fun getOffsetSum(): Int {
-        var sum = 0;
-        for (i in set.indices)
-            sum += set[i].getOffset()
-        return sum;
+    fun replaceElement(index: Int, element: Oligonucleotide) {
+        this.data[index] = deepCopy(element)
+        calcOffsetAt(index)
+        calcOffsetAt(index + 1)
+    }
+
+    fun removeElementAt(index: Int) {
+        this.data.removeAt(index)
     }
 
     override fun toString(): String {
-        return "Sequence(set=$set)"
+        var seqString = data[0].getValue()
+        for (i in 1 until data.size) {
+            val offset = calcOffsetBetween(data[i-1], data[i])
+            seqString += data[i].getValue().subSequence(data[i].getValue().length - offset, data[i].getValue().length)
+        }
+        return seqString
     }
 
+    fun getLength(): Int {
+        return toString().length
+    }
 
+    fun getSize(): Int {
+        return this.data.size
+    }
+
+    fun calcOffsetBetween(elem1: Oligonucleotide, elem2: Oligonucleotide): Int {
+        val elem1Value = elem1.getValue()
+        val elem2Value = elem2.getValue()
+        var offset = elem1Value.length
+        for (i in 0..elem2Value.length - 2) {
+            val substr1 = elem2Value.subSequence(0, elem2Value.length - i - 1)
+            val substr2 = elem1Value.subSequence(i + 1, elem1Value.length)
+            if (substr1 == substr2) {
+                offset = elem1Value.length - substr1.length
+                break
+            }
+        }
+        return offset
+    }
+
+    private fun calcOffsetAt(index: Int) {
+        if (index > this.data.size - 1) return
+        if (index == 0) {
+            data[index].setOffset(0)
+        } else {
+            data[index].setOffset(calcOffsetBetween(data[index-1], data[index]))
+        }
+    }
+
+    fun calcAllOffsets() {
+        for (i in data.indices) {
+            data[i].setOffset(0)
+            if (i != 0) {
+                data[i].setOffset(calcOffsetBetween(data[i-1], data[i]))
+            }
+        }
+    }
+
+    fun refreshPositions() {
+        for (i in this.data.indices) {
+            this.data[i].setPosition(i)
+        }
+    }
+
+    fun getAverageOffset(): Double {
+        calcAllOffsets()
+        var offsetSum = 0
+        for (i in data.indices) {
+            offsetSum += data[i].getOffset()
+        }
+        return offsetSum.toDouble() / data.size.toDouble()
+    }
+
+    private fun deepCopy(oligonucleotide: Oligonucleotide): Oligonucleotide {
+        val new = Oligonucleotide(oligonucleotide.getValue())
+        new.setPosition(oligonucleotide.getPosition())
+        new.setOffset(oligonucleotide.getOffset())
+        return new
+    }
 }

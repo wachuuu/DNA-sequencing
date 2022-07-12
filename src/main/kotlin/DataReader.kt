@@ -6,10 +6,10 @@ class DataReader {
     fun readInstance(fileName: String) {
         val read = File("instances/$fileName").bufferedReader().readLines()
         for (i in read.indices) {
-            set += Oligonucleotide(read[i]);
+            set += Oligonucleotide(read[i])
         }
     }
     fun getSet(): MutableList<Oligonucleotide> {
-        return set;
+        return set
     }
 }
